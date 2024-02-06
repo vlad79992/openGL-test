@@ -2,8 +2,51 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
 #include <cmath>
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string& filepath)
+{
+    std::ifstream ifs(filepath);
+
+    enum class ShaderType
+    {
+        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    };
+
+    std::string line;
+    std::stringstream ss[2];
+    ShaderType type = ShaderType::NONE;
+    while (getline(ifs, line))
+    {
+        if (line.find("#shader") != std::string::npos)
+        {
+            if (line.find("vertex") != std::string::npos)
+                type = ShaderType::VERTEX;
+            if (line.find("fragment") != std::string::npos)
+                type = ShaderType::FRAGMENT;
+        }
+        else
+        {
+            if (type == ShaderType::NONE) {
+                std::cerr << "shader type not specified" << std::endl;
+                continue;
+            }
+            ss[(int)type] << line << std::endl;
+        }
+    }
+    return { ss[0].str(), ss[1].str() };
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -29,11 +72,13 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
     return id;
 }
 
-static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
+static unsigned int CreateShader(const std::string& shaderFilePath)
 {
+    ShaderProgramSource source = ParseShader(shaderFilePath);
+
     uint32_t program = glCreateProgram();
-    uint32_t vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-    uint32_t fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+    uint32_t vs = CompileShader(GL_VERTEX_SHADER, source.VertexSource);
+    uint32_t fs = CompileShader(GL_FRAGMENT_SHADER, source.FragmentSource);
 
     glAttachShader(program, vs);
     glAttachShader(program, fs);
@@ -67,7 +112,7 @@ int main(void)
     glfwMakeContextCurrent(window);
 
     if (glewInit() != GLEW_OK) {
-        std::cout << "error" << std::endl;
+        std::cerr << "error" << std::endl;
     }
     
     std::cout << glGetString(GL_VERSION) << std::endl;
@@ -86,28 +131,7 @@ int main(void)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-
-    std::string vergexShader =
-R"(#version 330 core
-
-layout (location = 0) in vec4 position;
-
-void main()
-{
-    glPosition = position;
-}
-)";
-    std::string fragmentShader =
-R"(#version 330 core
-
-layout (location = 0) out vec4 color;
-
-void main()
-{
-    color = vec4(1.0, 0.0, 0.0, 1.0);
-}
-)";
-    uint32_t shader = CreateShader(vergexShader, fragmentShader);
+    uint32_t shader = CreateShader("Basic.shader");
     glUseProgram(shader);
 
     /* Loop until the user closes the window */
