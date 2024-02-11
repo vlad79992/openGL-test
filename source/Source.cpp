@@ -6,6 +6,10 @@
 
 #include <iostream>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include "Renderer.h"
 
 int main(void)
@@ -18,7 +22,7 @@ int main(void)
 
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(800, 800, "Test", NULL, NULL);
+    window = glfwCreateWindow(1280, 720, "Test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -33,7 +37,8 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
-    glfwSwapInterval(2);
+    glfwSwapInterval(1);
+
 
     if (glewInit() != GLEW_OK) {
         std::cerr << "error" << std::endl;
@@ -41,11 +46,11 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    float positions[]{
-        -0.5f, -0.5f, 0.0f, 0.0f, //0
-         0.5f, -0.5f, 1.0f, 0.0f, //1
-         0.5f,  0.5f, 1.0f, 1.0f, //2
-        -0.5f,  0.5f, 0.0f, 1.0f  //3
+    float positions[]{ //[0, 1] - position, [2, 3] - texture coord
+        -100.0f, -100.0f, 0.0f, 0.0f, //0
+         100.0f, -100.0f, 1.0f, 0.0f, //1
+         100.0f,  100.0f, 1.0f, 1.0f, //2
+        -100.0f,  100.0f, 0.0f, 1.0f  //3
     };
 
     unsigned int indicies[]{
@@ -66,9 +71,16 @@ int main(void)
 
     IndexBuffer ib(indicies, 6);
 
+    glm::mat4 proj = glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f, -1.0f, 1.0f); //resolution
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+    //glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
+
+    //glm::mat4 mvp = proj * view * model; //model, view, projection
+
     Shader shader("resources/shaders/Basic.shader");
     shader.Bind();
     shader.SetUniform4f("u_Color", 0.8, 0.3, 0.8, 1.0);
+    //shader.SetUniformMat4f("u_MVP", mvp);
 
     Texture texture ("resources/textures/Fly-PNG-7.png");
     texture.Bind();
@@ -82,18 +94,64 @@ int main(void)
 
     Renderer renderer;
 
-    float r = 0.0f;
-    float incr = 0.05f;
+    //IMGUI
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui::StyleColorsDark(); 
 
+    bool show_demo_window = true;
+    bool show_another_window = false;
+    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
+    //
+
+    float r = 0.0f;
+    float incr = 0.01f;
+    glm::vec3 translation(200, 200, 0);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
+        renderer.Clear();
+        
+        //IMGUI
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        //
+
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+        glm::mat4 mvp = proj * view * model; //model, view, projection
+
         shader.Bind();
+        shader.SetUniformMat4f("u_MVP", mvp);
         shader.SetUniform4f("u_Color", r, 0.3, 0.8, 1.0);
 
-        renderer.Clear();
+        //IMGUI
+        ImGui::NewFrame();
+
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+        glClear(GL_COLOR_BUFFER_BIT);
+        //
+
         renderer.Draw(va, ib, shader);
+
+        //IMGUI
+        {
+            static float f = 0.0f;
+            
+            ImGui::SliderFloat3("translate", &translation.x, 0.0f, 1280.0f); // Edit 3 floats using a slider from 0.0f to 1280.0f
+            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        }
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //
 
         {
             if (r > 1.0f)
@@ -103,6 +161,7 @@ int main(void)
             r += incr;
         }
 
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
@@ -111,6 +170,13 @@ int main(void)
     }
 
     }
+
+    //IMGUI
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    //
+
     glfwTerminate();
     return 0;
 }

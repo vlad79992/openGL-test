@@ -6,6 +6,8 @@
 #include "Shader.h"
 #include "Texture.h"    
 
+#include "glm/glm.hpp"
+
 class Renderer
 {
 public:
