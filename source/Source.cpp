@@ -14,7 +14,7 @@
 
 int main(void)
 {
-    GLFWwindow* window;
+    GLFWwindow* window, *window2;
 
     /* Initialize the library */
     if (!glfwInit())
@@ -24,6 +24,13 @@ int main(void)
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(1280, 720, "Test", NULL, NULL);
     if (!window)
+    {
+        glfwTerminate();
+        return -1;
+    }
+
+    window2 = glfwCreateWindow(480, 480, "Test2", NULL, NULL);
+    if (!window2)
     {
         glfwTerminate();
         return -1;
@@ -95,9 +102,10 @@ int main(void)
     Renderer renderer;
 
     //IMGUI
+    glfwMakeContextCurrent(window2);
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(window2, true);
     ImGui_ImplOpenGL3_Init("#version 130");
     ImGui::StyleColorsDark(); 
 
@@ -110,15 +118,20 @@ int main(void)
     float incr = 0.01f;
     glm::vec3 translation(200, 200, 0);
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window) || !glfwWindowShouldClose(window2))
     {
         /* Render here */
+        glfwMakeContextCurrent(window);
+
         renderer.Clear();
         
         //IMGUI
+        glfwMakeContextCurrent(window2);
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         //
+        glfwMakeContextCurrent(window);
 
         glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
         glm::mat4 mvp = proj * view * model; //model, view, projection
@@ -128,6 +141,8 @@ int main(void)
         shader.SetUniform4f("u_Color", r, 0.3, 0.8, 1.0);
 
         //IMGUI
+        //glfwMakeContextCurrent(window2);
+
         ImGui::NewFrame();
 
         int display_w, display_h;
@@ -136,14 +151,17 @@ int main(void)
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         //
+        glfwMakeContextCurrent(window);
 
         renderer.Draw(va, ib, shader);
 
         //IMGUI
         {
+            glfwMakeContextCurrent(window2);
+
             static float f = 0.0f;
             
-            ImGui::SliderFloat3("translate", &translation.x, 0.0f, 1280.0f); // Edit 3 floats using a slider from 0.0f to 1280.0f
+            ImGui::SliderFloat2("translate", &translation.x, 0.0f, 1280.0f); // Edit 3 floats using a slider from 0.0f to 1280.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
@@ -164,6 +182,7 @@ int main(void)
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
+        glfwSwapBuffers(window2);
 
         /* Poll for and process events */
         glfwPollEvents();
