@@ -12,9 +12,12 @@
 
 #include "Renderer.h"
 
+#include "tests/TestClearColor.h"
+#include "tests/Game.h"
+
 int main(void)
 {
-    GLFWwindow* window, *window2;
+    GLFWwindow* window;
 
     /* Initialize the library */
     if (!glfwInit())
@@ -22,19 +25,13 @@ int main(void)
 
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1280, 720, "Test", NULL, NULL);
+    window = glfwCreateWindow(1600, 1600, "Test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
         return -1;
     }
 
-    window2 = glfwCreateWindow(480, 480, "Test2", NULL, NULL);
-    if (!window2)
-    {
-        glfwTerminate();
-        return -1;
-    }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -53,147 +50,106 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    float positions[]{ //[0, 1] - position, [2, 3] - texture coord
-        -100.0f, -100.0f, 0.0f, 0.0f, //0
-         100.0f, -100.0f, 1.0f, 0.0f, //1
-         100.0f,  100.0f, 1.0f, 1.0f, //2
-        -100.0f,  100.0f, 0.0f, 1.0f  //3
-    };
-
-    unsigned int indicies[]{
-        0, 1, 2,
-        2, 3, 0
-    };
     {
     GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     GLCall(glEnable(GL_BLEND));
 
-    VertexArray va;
-    VertexBuffer vb(positions, sizeof(float) * 4 * 4);
-
-    VertexBufferLayout layout;
-    layout.Push<float>(2);
-    layout.Push<float>(2);
-    va.AddBuffer(vb, layout);
-
-    IndexBuffer ib(indicies, 6);
-
-    glm::mat4 proj = glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f, -1.0f, 1.0f); //resolution
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-    //glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
-
-    //glm::mat4 mvp = proj * view * model; //model, view, projection
-
-    Shader shader("resources/shaders/Basic.shader");
-    shader.Bind();
-    shader.SetUniform4f("u_Color", 0.8, 0.3, 0.8, 1.0);
-    //shader.SetUniformMat4f("u_MVP", mvp);
-
-    Texture texture ("resources/textures/Fly-PNG-7.png");
-    texture.Bind();
-    shader.SetUniform1i("u_Texture", 0);
-
-
-    va.Unbind();
-    vb.Unbind();
-    ib.Unbind();
-    shader.Unbind();
-
     Renderer renderer;
 
     //IMGUI
-    glfwMakeContextCurrent(window2);
-    ImGui::CreateContext();
+    /*ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui_ImplGlfw_InitForOpenGL(window2, true);
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
     ImGui::StyleColorsDark(); 
 
     bool show_demo_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
+    bool show_another_window = false;*/
     //
 
-    float r = 0.0f;
-    float incr = 0.01f;
-    glm::vec3 translation(200, 200, 0);
+
+    /*test::Test* currentTest = nullptr;
+    test::TestMenu* menu = new test::TestMenu(currentTest);
+    currentTest = menu;*/
+
+    //menu->AddTest<test::TestClearColor>("Clear Color");
+    //menu->AddTest<Game>("Game");
+    float angle1 = 0.0f;
+    float angle2 = 0.0f;
+    int key_a = 0, key_d = 0, key_lshift;
+    int key_left = 0, key_right = 0, key_rshift;
+    Game game;
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window) || !glfwWindowShouldClose(window2))
+    while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glfwMakeContextCurrent(window);
 
         renderer.Clear();
+        glClearColor(0, 0, 0, 1);
         
-        //IMGUI
-        glfwMakeContextCurrent(window2);
+        game.OnRender();
 
+        {
+            if (key_a == GLFW_PRESS)
+                angle1 += 0.03f;
+            if (key_d == GLFW_PRESS)
+                angle1 -= 0.03f;
+            if (key_left == GLFW_PRESS)
+                angle2 += 0.03f;
+            if (key_right == GLFW_PRESS)
+                angle2 -= 0.03f;
+        }
+
+
+
+        game.OnUpdate(angle1, angle2);
+
+        /*test.OnUpdate(0.0f);
+        test.OnRender();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
-        //
-        glfwMakeContextCurrent(window);
+        ImGui::NewFrame();*/
 
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-        glm::mat4 mvp = proj * view * model; //model, view, projection
+        //if (currentTest)
+        //{
+        //    currentTest->OnUpdate(0.0f);
+        //    currentTest->OnRender();
+        //    ImGui::Begin("Test");
+        //    if (currentTest != menu && ImGui::Button("<-"))
+        //    {
+        //        delete currentTest;
+        //        currentTest = menu;
+        //    }
+        //    //currentTest->OnImGuiRender();
+        //    ImGui::End();
+        //}
 
-        shader.Bind();
-        shader.SetUniformMat4f("u_MVP", mvp);
-        shader.SetUniform4f("u_Color", r, 0.3, 0.8, 1.0);
+        //test.OnImGuiRender();
 
-        //IMGUI
-        //glfwMakeContextCurrent(window2);
-
-        ImGui::NewFrame();
-
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        //
-        glfwMakeContextCurrent(window);
-
-        renderer.Draw(va, ib, shader);
-
-        //IMGUI
-        {
-            glfwMakeContextCurrent(window2);
-
-            static float f = 0.0f;
-            
-            ImGui::SliderFloat2("translate", &translation.x, 0.0f, 1280.0f); // Edit 3 floats using a slider from 0.0f to 1280.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-        }
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        //
-
-        {
-            if (r > 1.0f)
-                incr *= -1;
-            else if (r < 0.0f)
-                incr *= -1;
-            r += incr;
-        }
-
-
+        //ImGui::Render();
+        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        
+        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
-        glfwSwapBuffers(window2);
 
         /* Poll for and process events */
         glfwPollEvents();
+        key_a = glfwGetKey(window, GLFW_KEY_A);
+        key_d = glfwGetKey(window, GLFW_KEY_D);
+        game.player1_shift = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
+        key_left = glfwGetKey(window, GLFW_KEY_LEFT);
+        key_right = glfwGetKey(window, GLFW_KEY_RIGHT);
+        game.player2_shift = glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT);
+        //move_x = 0, move_y = 0;
     }
 
     }
 
     //IMGUI
-    ImGui_ImplOpenGL3_Shutdown();
+    /*ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    ImGui::DestroyContext();*/
     //
 
     glfwTerminate();

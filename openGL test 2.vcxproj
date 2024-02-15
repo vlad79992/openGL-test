@@ -96,6 +96,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>source/vendor/imgui;source/vendor;$(SolutionDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -103,7 +104,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies);user32.lib;gdi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;%(AdditionalDependencies);user32.lib;gdi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -132,6 +133,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>source/vendor/imgui;source/vendor;$(SolutionDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,14 +141,18 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies);user32.lib;gdi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>glfw3_mt.lib;opengl32.lib;%(AdditionalDependencies);user32.lib;gdi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\tests\Player.cpp" />
+    <ClCompile Include="source\tests\Game.cpp" />
     <ClCompile Include="source\IndexBuffer.cpp" />
     <ClCompile Include="source\Renderer.cpp" />
     <ClCompile Include="source\Shader.cpp" />
     <ClCompile Include="source\Source.cpp" />
+    <ClCompile Include="source\tests\Test.cpp" />
+    <ClCompile Include="source\tests\TestClearColor.cpp" />
     <ClCompile Include="source\vendor\glm\detail\glm.cpp" />
     <ClCompile Include="source\vendor\glm\glm.cppm" />
     <ClCompile Include="source\vendor\imgui\imgui_impl_glfw.cpp" />
@@ -305,10 +311,14 @@
     <None Include="source\vendor\glm\gtx\wrap.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\tests\Player.h" />
+    <ClInclude Include="source\tests\Game.h" />
     <ClInclude Include="source\GLDebug.h" />
     <ClInclude Include="source\IndexBuffer.h" />
     <ClInclude Include="source\Renderer.h" />
     <ClInclude Include="source\Shader.h" />
+    <ClInclude Include="source\tests\Test.h" />
+    <ClInclude Include="source\tests\TestClearColor.h" />
     <ClInclude Include="source\vendor\glm\common.hpp" />
     <ClInclude Include="source\vendor\glm\detail\compute_common.hpp" />
     <ClInclude Include="source\vendor\glm\detail\compute_vector_decl.hpp" />
