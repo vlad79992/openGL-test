@@ -1,7 +1,10 @@
 #pragma once
 #pragma comment (lib, "glew32s.lib")
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -39,9 +42,12 @@ public:
 	void AddShaders(std::string vertexShaderPath, std::string fragmentShaderPath);
 
 	void AddTriangle(Vertex v1, Vertex v2, Vertex v3);
+	void ClearVerticies();
 
 	void SetVerticesAndColors(const float* vert, const float* color, int length);
 	void SetBackgroundColor(float r, float g, float b, float a);
+
+	void GetCursorPosition(double& xpos, double& ypos);
 
 	GLFWwindow* GetWindow();
 private:

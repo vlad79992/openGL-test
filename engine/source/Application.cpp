@@ -52,7 +52,7 @@ int Application::CreateWindow(int width, int height, std::string name)
 	}
 
 	// Ensure we can capture the escape key being pressed below
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
 	
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
@@ -132,10 +132,10 @@ void Application::BindBuffers()
 	// The following commands will talk about our 'vertexbuffer' buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	// Give our vertices to OpenGL.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * verticies.size(), verticies.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * verticies.size(), verticies.data(), GL_DYNAMIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * colors.size(), colors.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * colors.size(), colors.data(), GL_DYNAMIC_DRAW);
 }
 
 void Application::AddShaders(std::string vertexShaderPath, std::string fragmentShaderPath)
@@ -171,6 +171,12 @@ void Application::AddTriangle(Vertex v1, Vertex v2, Vertex v3)
 
 }
 
+void Application::ClearVerticies()
+{
+	verticies.clear();
+	colors.clear();
+}
+
 void Application::SetVerticesAndColors(const float* vert, const float* color, int length)
 {
 	for (int i = 0; i < length; ++i)
@@ -178,11 +184,18 @@ void Application::SetVerticesAndColors(const float* vert, const float* color, in
 		verticies.push_back(vert[i]);
 		colors.push_back(color[i]);
 	}
+	delete(vert);
+	delete(color);
 }
 
 void Application::SetBackgroundColor(float r, float g, float b, float a)
 {
 	bg_col[0] = r, bg_col[1] = g, bg_col[2] = b, bg_col[3] = a;
+}
+
+void Application::GetCursorPosition(double& xpos, double& ypos)
+{
+	glfwGetCursorPos(window, &xpos, &ypos);
 }
 
 GLFWwindow* Application::GetWindow()
