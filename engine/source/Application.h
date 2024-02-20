@@ -11,6 +11,8 @@
 
 #include <string>
 #include <vector>
+#include <mutex>
+#include <chrono>
 
 #include "Vertex.hpp"
 
@@ -18,6 +20,7 @@
 class Application
 {
 public:
+	float *pos = nullptr, *col = nullptr;
 	Application();
 	~Application()
 	{
@@ -30,6 +33,8 @@ public:
 		// Close OpenGL window and terminate GLFW
 		glfwTerminate();
 		//delete(window);
+		delete(pos);
+		delete(col);
 	}
 	int CreateWindow(int width, int height, std::string name);
 	int CreateWindow();
@@ -38,6 +43,7 @@ public:
 
 	void Render();
 	void BindBuffers();
+	void BindRawBuffers(int length);
 
 	void AddShaders(std::string vertexShaderPath, std::string fragmentShaderPath);
 
@@ -45,6 +51,7 @@ public:
 	void ClearVerticies();
 
 	void SetVerticesAndColors(const float* vert, const float* color, int length);
+	void SetVerticesAndColors(const float* vert, const float* color, int length, std::mutex& mutex);
 	void SetBackgroundColor(float r, float g, float b, float a);
 
 	void GetCursorPosition(double& xpos, double& ypos);
@@ -60,6 +67,7 @@ private:
 	std::vector<float> colors;
 	GLuint vertexbuffer; //vertex buffer
 	GLuint colorbuffer;  //color buffer
+	long long vert_size;
 	//shaders
 	GLuint programID; //shader
 	GLuint MatrixID;  //transform matrix
@@ -99,3 +107,44 @@ private:
 	Camera camera;
 };
 
+class Timer
+{
+public:
+	void start()
+	{
+		m_StartTime = std::chrono::system_clock::now();
+		m_bRunning = true;
+	}
+
+	void stop()
+	{
+		m_EndTime = std::chrono::system_clock::now();
+		m_bRunning = false;
+	}
+
+	double elapsedMilliseconds()
+	{
+		std::chrono::time_point<std::chrono::system_clock> endTime;
+
+		if (m_bRunning)
+		{
+			endTime = std::chrono::system_clock::now();
+		}
+		else
+		{
+			endTime = m_EndTime;
+		}
+
+		return std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_StartTime).count();
+	}
+
+	double elapsedSeconds()
+	{
+		return elapsedMilliseconds() / 1000.0;
+	}
+
+private:
+	std::chrono::time_point<std::chrono::system_clock> m_StartTime;
+	std::chrono::time_point<std::chrono::system_clock> m_EndTime;
+	bool                                               m_bRunning = false;
+};

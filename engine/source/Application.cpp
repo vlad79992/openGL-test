@@ -117,7 +117,7 @@ void Application::Render()
 	);
 
 	// Draw the triangle !
-	glDrawArrays(GL_TRIANGLES, 0, verticies.size()); // 12*3 indices starting at 0 -> 12 triangles
+	glDrawArrays(GL_TRIANGLES, 0, vert_size); // 12*3 indices starting at 0 -> 12 triangles
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
@@ -136,6 +136,19 @@ void Application::BindBuffers()
 
 	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * colors.size(), colors.data(), GL_DYNAMIC_DRAW);
+	vert_size = verticies.size();
+}
+
+void Application::BindRawBuffers(int length)
+{
+	vert_size = length;
+	// The following commands will talk about our 'vertexbuffer' buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	// Give our vertices to OpenGL.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * length, this->pos, GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * length, this->col, GL_DYNAMIC_DRAW);
 }
 
 void Application::AddShaders(std::string vertexShaderPath, std::string fragmentShaderPath)
@@ -186,6 +199,21 @@ void Application::SetVerticesAndColors(const float* vert, const float* color, in
 	}
 	delete(vert);
 	delete(color);
+}
+
+void Application::SetVerticesAndColors(const float* vert, const float* color, int length, std::mutex& mutex)
+{
+	mutex.lock();
+	//std::cout << "locked" << std::endl;
+	for (int i = 0; i < length; ++i)
+	{
+		verticies.push_back(vert[i]);
+		colors.push_back(color[i]);
+	}
+	delete(vert);
+	delete(color);
+	//std::cout << "unlocked" << std::endl;
+	mutex.unlock();
 }
 
 void Application::SetBackgroundColor(float r, float g, float b, float a)
