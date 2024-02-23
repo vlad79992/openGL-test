@@ -1,6 +1,5 @@
-#pragma once
-
 #include "../engine/source/Application.h"
+//#include <Application.h>
 
 #include <vector>
 #include <random>
@@ -34,8 +33,10 @@ void Create2DCircleColor_Direct(Point p, Application& app, int begin)
 }
 
 double c = 0.01;
+int defaultx = 1280, defaulty = 720;
+bool fullscreen = false;
 int resx = 1600, resy = 900;
-int thread_count = 8, points_count = 100000;
+int thread_count = std::thread::hardware_concurrency(), points_count = 100000;
 
 void points_and_cursor(std::vector<Point>& points, double xpos, double ypos, Application& app)
 {
@@ -54,6 +55,9 @@ void points_and_cursor(std::vector<Point>& points, double xpos, double ypos, App
 
 				p.x_vel += to_cursor_x;
 				p.y_vel += to_cursor_y;
+				//add rondomness
+				p.x_vel += c * 0.75e-4 * ((double)rand() / (RAND_MAX)) - (c * 0.75e-4) / 2;
+				p.y_vel += c * 0.75e-4 * ((double)rand() / (RAND_MAX)) - (c * 0.75e-4) / 2;
 			}
 
 			if (p.x_vel > max_vel)
@@ -94,7 +98,7 @@ void points_and_cursor(std::vector<Point>& points, double xpos, double ypos, App
 		threads[i].join();
 }
 
-void points_follow_cursor()
+inline void points_follow_cursor()
 {
 	//random
 	std::random_device rd;

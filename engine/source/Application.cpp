@@ -1,8 +1,9 @@
-﻿#define GLM_ENABLE_EXPERIMENTAL
+﻿#include "Application.h"
+#define GLM_ENABLE_EXPERIMENTAL
 
 #include "Application.h"
 
-#include "shader compilation.hpp"
+import shader_compilation;
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -11,9 +12,8 @@
 #include <iostream>
 
 Application::Application()
-	:colorbuffer{}, vertexbuffer{}, MatrixID{}, programID{}, window{}, camera{}
+	:colorbuffer{}, vertexbuffer{}, MatrixID{}, VertexArrayID{}, programID{}, window{}, vert_size{}
 {
-
 }
 
 int Application::CreateWindow(int width, int height, std::string name)
@@ -139,21 +139,29 @@ void Application::BindBuffers()
 	vert_size = verticies.size();
 }
 
-void Application::BindRawBuffers(int length)
-{
-	vert_size = length;
-	// The following commands will talk about our 'vertexbuffer' buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	// Give our vertices to OpenGL.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * length, this->pos, GL_DYNAMIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * length, this->col, GL_DYNAMIC_DRAW);
-}
+//void Application::BindRawBuffers(int length)
+//{
+//	vert_size = length;
+//	// The following commands will talk about our 'vertexbuffer' buffer
+//	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+//	// Give our vertices to OpenGL.
+//	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * length, this->pos, GL_DYNAMIC_DRAW);
+//
+//	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+//	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * length, this->col, GL_DYNAMIC_DRAW);
+//}
 
 void Application::AddShaders(std::string vertexShaderPath, std::string fragmentShaderPath)
 {
 	this->programID = LoadShaders(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+}
+
+void Application::AddTextures(std::string texturePath)
+{
+	this->texture = loadBMP_custom(texturePath);
+	glGenBuffers(1, &uvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * UVs.size(), UVs.data(), GL_DYNAMIC_DRAW);
 }
 
 void Application::AddTriangle(Vertex v1, Vertex v2, Vertex v3)
@@ -187,33 +195,103 @@ void Application::AddTriangle(Vertex v1, Vertex v2, Vertex v3)
 void Application::ClearVerticies()
 {
 	verticies.clear();
+}
+
+void Application::ClearColors()
+{
 	colors.clear();
 }
 
-void Application::SetVerticesAndColors(const float* vert, const float* color, int length)
+void Application::ClearUVs()
 {
-	for (int i = 0; i < length; ++i)
-	{
-		verticies.push_back(vert[i]);
-		colors.push_back(color[i]);
-	}
-	delete(vert);
-	delete(color);
+	UVs.clear();
 }
 
-void Application::SetVerticesAndColors(const float* vert, const float* color, int length, std::mutex& mutex)
+void Application::ResizeVerticies(int new_size)
 {
-	mutex.lock();
-	//std::cout << "locked" << std::endl;
+	verticies.resize(new_size);
+}
+
+void Application::ResizeColors(int new_size)
+{
+	colors.resize(new_size);
+}
+
+void Application::ResizeUVs(int new_size)
+{
+	UVs.resize(new_size);
+}
+
+void Application::VerticiesSetAt(int pos, float value)
+{
+	//if (pos < 0 || pos > verticies.size()) //SLOOOOOOOOOW
+	//{
+	//	std::runtime_error("invalide index\n");
+	//}
+	verticies[pos] = value;
+}
+
+void Application::ColorsSetAt(int pos, float value)
+{
+	//if (pos < 0 || pos > colors.size()) //SLOOOOOOOOOW
+	//{
+	//	std::runtime_error("invalide index\n");
+	//}
+	colors[pos] = value;
+}
+
+void Application::UVsSetAt(int pos, float value)
+{
+	if (pos < 0 || pos > UVs.size())
+	{
+		std::runtime_error("invalide index\n");
+	}
+	UVs[pos] = value;
+}
+
+void Application::SetVerticesAndColors(const float* vert, const float* color, int length, bool free)
+{
 	for (int i = 0; i < length; ++i)
 	{
 		verticies.push_back(vert[i]);
 		colors.push_back(color[i]);
 	}
-	delete(vert);
-	delete(color);
-	//std::cout << "unlocked" << std::endl;
-	mutex.unlock();
+	if (free)
+	{
+		delete(vert);
+		delete(color);
+	}
+}
+
+void Application::SetVerticesAndColors(const std::vector<float>& vert, const std::vector<float>& col)
+{
+	for (int i = 0; i < vert.size(); ++i)
+		verticies.push_back(vert[i]);
+	for (int j = 0; j < col.size(); ++j)
+		colors.push_back(col[j]);
+}
+
+//void Application::SetVerticesAndColors(const float* vert, const float* color, int length, std::mutex& mutex)
+//{
+//	mutex.lock();
+//	//std::cout << "locked" << std::endl;
+//	for (int i = 0; i < length; ++i)
+//	{
+//		verticies.push_back(vert[i]);
+//		colors.push_back(color[i]);
+//	}
+//	delete(vert);
+//	delete(color);
+//	//std::cout << "unlocked" << std::endl;
+//	mutex.unlock();
+//}
+
+void Application::SetUVs(const float* UV, int length)
+{
+	for (int i = 0; i < length; ++i)
+	{
+		verticies.push_back(UV[i]);
+	}
 }
 
 void Application::SetBackgroundColor(float r, float g, float b, float a)
@@ -231,22 +309,17 @@ GLFWwindow* Application::GetWindow()
 	return this->window;
 }
 
-Application::Camera::Camera(const GLuint programID, GLuint &matrixId, float aspect)
-	:Projection{}, View{}, Model{}, mvp{}
-{	
-	// Get a handle for our "MVP" uniform
-	matrixId = glGetUniformLocation(programID, "MVP");
-
-	// Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	Projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-	// Camera matrix
-	View = glm::lookAt(
-		glm::vec3(4, 3, -3), // Camera is at (4,3,-3), in World Space
-		glm::vec3(0, 0, 0), // and looks at the origin
-		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-	);
-	// Model matrix : an identity matrix (model will be at the origin)
-	Model = glm::mat4(1.0f);
-	// Our ModelViewProjection : multiplication of our 3 matrices
-	mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
+void Application::CreateCamera()
+{
+	camera.CameraInit(programID, MatrixID, (float)width / (float)height);
+}
+void Application::SetView(glm::mat4 view)
+{
+	camera.View = view;
+	camera.mvp = camera.Projection * camera.View * camera.Model;
+}
+void Application::SetProjection(glm::mat4 projection)
+{
+	camera.Projection = projection;
+	camera.mvp = camera.Projection * camera.View * camera.Model;
 }

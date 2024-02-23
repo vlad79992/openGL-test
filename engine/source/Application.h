@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #pragma comment (lib, "glew32s.lib")
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -9,18 +9,27 @@
 #include <GLFW/glfw3.h>
 
 
-#include <string>
+//#include <string>
 #include <vector>
 #include <mutex>
-#include <chrono>
+//#include <chrono>
 
-#include "Vertex.hpp"
+import Vertex;
+import Camera;
+import Point;
+import Timer;
+import BMP_loader;
 
+//#include "BMP_loader.h"
+//#include "Camera.h"
+//#include "Point.h"
+//#include "Timer.h"
+//#include "Vertex.h"
 
 class Application
 {
 public:
-	float *pos = nullptr, *col = nullptr;
+	//float *pos = nullptr, *col = nullptr;
 	Application();
 	~Application()
 	{
@@ -33,8 +42,8 @@ public:
 		// Close OpenGL window and terminate GLFW
 		glfwTerminate();
 		//delete(window);
-		delete(pos);
-		delete(col);
+		//delete(pos);
+		//delete(col);
 	}
 	int CreateWindow(int width, int height, std::string name);
 	int CreateWindow();
@@ -43,16 +52,31 @@ public:
 
 	void Render();
 	void BindBuffers();
-	void BindRawBuffers(int length);
+	//void BindRawBuffers(int length);
 
 	void AddShaders(std::string vertexShaderPath, std::string fragmentShaderPath);
+	void AddTextures(std::string texturePath); //add BMP texture
 
 	void AddTriangle(Vertex v1, Vertex v2, Vertex v3);
+	//clear vectors
 	void ClearVerticies();
-
-	void SetVerticesAndColors(const float* vert, const float* color, int length);
-	void SetVerticesAndColors(const float* vert, const float* color, int length, std::mutex& mutex);
+	void ClearColors();
+	void ClearUVs();
+	//resize vectors
+	void ResizeVerticies(int new_size);
+	void ResizeColors(int new_size);
+	void ResizeUVs(int new_size);
+	//set element of vectors
+	void VerticiesSetAt(int pos, float value);
+	void ColorsSetAt(int pos, float value);
+	void UVsSetAt(int pos, float value);
+	//
+	void SetVerticesAndColors(const float* vert, const float* color, int length, bool free); //if free is true float pointers will be deleted
+	void SetVerticesAndColors(const std::vector<float>& vert, const std::vector<float>& color); //if free is true float pointers will be deleted
+	void SetUVs(const float* UV, int length);
+	//void SetVerticesAndColors(const float* vert, const float* color, int length, std::mutex& mutex);
 	void SetBackgroundColor(float r, float g, float b, float a);
+
 
 	void GetCursorPosition(double& xpos, double& ypos);
 
@@ -65,8 +89,12 @@ private:
 	//triangles data
 	std::vector<float> verticies;
 	std::vector<float> colors;
-	GLuint vertexbuffer; //vertex buffer
+	GLuint vertexbuffer;  //vertex buffer
 	GLuint colorbuffer;  //color buffer
+	//textures
+	std::vector<float> UVs;
+	GLuint uvbuffer;
+	GLuint texture;     //texture
 	long long vert_size;
 	//shaders
 	GLuint programID; //shader
@@ -74,77 +102,15 @@ private:
 	GLuint VertexArrayID;
 	//camera
 	friend class Camera;
+	Camera camera;// = Camera(programID, MatrixID, (float)width / (float)height);
 public:
-	void CreateCamera()
-	{
-		this->camera = Camera(programID, MatrixID, (float)width / (float)height);
-	}
-	void SetView(glm::mat4 view)
-	{
-		camera.View = view;
-		camera.mvp = camera.Projection * camera.View * camera.Model;
-	}
-	void SetProjection(glm::mat4 projection)
-	{
-		camera.Projection = projection;
-		camera.mvp = camera.Projection * camera.View * camera.Model;
-	}
 	
-	class Camera
-	{
-	private:
-		friend class Application;
-		Camera(const GLuint programID, GLuint& MatirxID, float aspect);
-		Camera() 
-			:Projection{}, View{}, Model{}, mvp{}
-		{}
-		glm::mat4 Projection;
-		glm::mat4 View;
-		glm::mat4 Model;
-		glm::mat4 mvp;
-	};
+	void CreateCamera();
+
+	void SetView(glm::mat4 view);
+
+	void SetProjection(glm::mat4 projection);
+	
 private:
-	Camera camera;
 };
 
-class Timer
-{
-public:
-	void start()
-	{
-		m_StartTime = std::chrono::system_clock::now();
-		m_bRunning = true;
-	}
-
-	void stop()
-	{
-		m_EndTime = std::chrono::system_clock::now();
-		m_bRunning = false;
-	}
-
-	double elapsedMilliseconds()
-	{
-		std::chrono::time_point<std::chrono::system_clock> endTime;
-
-		if (m_bRunning)
-		{
-			endTime = std::chrono::system_clock::now();
-		}
-		else
-		{
-			endTime = m_EndTime;
-		}
-
-		return std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_StartTime).count();
-	}
-
-	double elapsedSeconds()
-	{
-		return elapsedMilliseconds() / 1000.0;
-	}
-
-private:
-	std::chrono::time_point<std::chrono::system_clock> m_StartTime;
-	std::chrono::time_point<std::chrono::system_clock> m_EndTime;
-	bool                                               m_bRunning = false;
-};

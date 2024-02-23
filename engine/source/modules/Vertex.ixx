@@ -1,8 +1,8 @@
-#pragma once
+export module Vertex;
 
-#include <glm/glm.hpp>
+import <glm/glm.hpp>;
 
-class Vertex
+export class Vertex
 {
 public:
 	Vertex(float x, float y, float z);
@@ -17,7 +17,7 @@ public:
 inline Vertex::Vertex(float x, float y, float z)
 {
 	position = { x, y, z };
-	color = { 1.0f, 1.0f, 1.0f, 0.0f };
+	color = { 1.0f, 1.0f, 1.0f, 1.0f };
 }
 
 inline Vertex::Vertex(float x, float y, float z, float r, float g, float b, float a)

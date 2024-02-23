@@ -1,14 +1,96 @@
-#pragma once
+export module shader_compilation;
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+import <string>;
+import <sstream>;
+import <fstream>;
+import <vector>;
 
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <vector>
+import <GL/glew.h>;
+import <GLFW/glfw3.h>;
+//
+//std::string defaultVertexShader{
+//R"(#version 330 core
+//
+//// Input vertex data, different for all executions of this shader.
+//layout(location = 0) in vec3 vertexPosition_modelspace;
+//layout(location = 1) in vec3 vertexColor;
+//
+//// Output data ; will be interpolated for each fragment.
+//out vec3 fragmentColor;
+//// Values that stay constant for the whole mesh.
+//uniform mat4 MVP;
+//
+//void main(){  
+//
+//  // Output position of the vertex, in clip space : MVP * position
+//  gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
+//
+//  // The color of each vertex will be interpolated
+//  // to produce the color of each fragment
+//  fragmentColor = vertexColor;
+//}
+//  )" };
+//std::string defaultFragmentShader{
+//    R"(#version 330 core
+//
+//// Interpolated values from the vertex shaders
+//in vec3 fragmentColor;
+//
+//// Ouput data
+//out vec3 color;
+//
+//void main(){
+//
+//  // Output color = color specified in the vertex shader, 
+//  // interpolated between all 3 surrounding vertices
+//  color = fragmentColor;
+//
+//})"
+//};
+//
+std::string defaultVertexShader{
+    R"(#version 330 core
 
-GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec2 vertexUV;
+
+// Output data ; will be interpolated for each fragment.
+out vec2 UV;
+
+// Values that stay constant for the whole mesh.
+uniform mat4 MVP;
+
+void main()
+{
+
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
+
+    // UV of the vertex. No special space for this one.
+    UV = vertexUV;
+})"
+};
+std::string defaultFragmentShader{
+    R"(#version 330 core
+
+// Interpolated values from the vertex shaders
+in vec2 UV;
+
+// Ouput data
+out vec3 color;
+
+// Values that stay constant for the whole mesh.
+uniform sampler2D myTextureSampler;
+
+void main(){
+
+    // Output color = color of the texture at the specified UV
+    color = texture( myTextureSampler, UV ).rgb;
+})"
+};
+
+export GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
 
     // Create the shaders
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -24,27 +106,7 @@ GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path)
         VertexShaderStream.close();
     }
     else {
-        VertexShaderCode = R"(#version 330 core
-
-// Input vertex data, different for all executions of this shader.
-layout(location = 0) in vec3 vertexPosition_modelspace;
-layout(location = 1) in vec3 vertexColor;
-
-// Output data ; will be interpolated for each fragment.
-out vec3 fragmentColor;
-// Values that stay constant for the whole mesh.
-uniform mat4 MVP;
-
-void main(){  
-
-  // Output position of the vertex, in clip space : MVP * position
-  gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
-
-  // The color of each vertex will be interpolated
-  // to produce the color of each fragment
-  fragmentColor = vertexColor;
-}
-  )";
+        VertexShaderCode = defaultVertexShader;
     }
 
     // Read the Fragment Shader code from the file
@@ -58,21 +120,7 @@ void main(){
     }
     else
     {
-        FragmentShaderCode = R"(#version 330 core
-
-// Interpolated values from the vertex shaders
-in vec3 fragmentColor;
-
-// Ouput data
-out vec3 color;
-
-void main(){
-
-  // Output color = color specified in the vertex shader, 
-  // interpolated between all 3 surrounding vertices
-  color = fragmentColor;
-
-})";
+        FragmentShaderCode = defaultFragmentShader;
     }
 
     GLint Result = GL_FALSE;
