@@ -85,6 +85,7 @@ private:
 	//triangles data
 	std::vector<float> verticies;
 	std::vector<float> colors;
+	//TODO рендер в несколько слоев
 	GLuint vertexbuffer;  //vertex buffer
 	GLuint colorbuffer;  //color buffer
 	//textures

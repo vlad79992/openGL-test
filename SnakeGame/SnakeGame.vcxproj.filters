@@ -21,9 +21,6 @@
     <ClCompile Include="game\SnakeGame.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game\Source\circle_on_cursor.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="game\Source\game_init.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,6 +28,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="game\Source\on_update.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="game\Source\Food_class.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,5 +47,10 @@
   <ItemGroup>
     <None Include="resources\shaders\SimpleFragmentShader.fragmentshader" />
     <None Include="resources\shaders\SimpleVertexShader.vertexshader" />
+    <None Include="resources\shaders\TextureFragmentShader.fragmentshader" />
+    <None Include="resources\shaders\TextureVertexShader.vertexshader" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\keys.txt" />
   </ItemGroup>
 </Project>

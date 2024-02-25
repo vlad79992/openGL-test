@@ -464,8 +464,8 @@
     <None Include="vendor\glm\gtx\wrap.inl">
       <Filter>Файлы заголовков</Filter>
     </None>
-    <None Include="resources\shaders\SimpleVertexShader.vertexshader" />
     <None Include="resources\shaders\SimpleFragmentShader.fragmentshader" />
+    <None Include="resources\shaders\SimpleVertexShader.vertexshader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vendor\stb_image.h">

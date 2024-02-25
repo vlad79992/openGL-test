@@ -157,7 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="game\SnakeGame.ixx" />
-    <ClCompile Include="game\Source\circle_on_cursor.ixx" />
+    <ClCompile Include="game\Source\Food_class.ixx" />
     <ClCompile Include="game\Source\game_init.ixx" />
     <ClCompile Include="game\Source\on_update.ixx" />
     <ClCompile Include="game\Source\Snake_class.ixx" />
@@ -183,6 +183,11 @@
   <ItemGroup>
     <None Include="resources\shaders\SimpleFragmentShader.fragmentshader" />
     <None Include="resources\shaders\SimpleVertexShader.vertexshader" />
+    <None Include="resources\shaders\TextureFragmentShader.fragmentshader" />
+    <None Include="resources\shaders\TextureVertexShader.vertexshader" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\keys.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,0 +1,6 @@
+player1_left 65
+player1_right 68
+player1_boost 340
+player2_left 263
+player2_right 262
+player2_boost 265
